@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"enable":true,"type":"giscus","giscus":{"repo":"samuelwang-hyper/meiwen.wang.github.io","repo_id":"R_kgDOQz3BKQ","category":"Announcements","category_id":"DIC_kwDOQz3BKc4C0lqL","mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","theme":"light","lang":"zh-CN"}},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="一文讲透芯片设计全流程：从想法到流片的完整旅程（转载+个人补充） 原文链接：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;wujianming-110117&#x2F;p&#x2F;19069268  芯片是怎么“造”出来的？ 在上一篇文章中，我们初步了解了什么是芯片、芯片的分类以及IC设计的基本概念。本文更深入一步，完整拆解一颗数字芯片的设计流程。 你是否好奇，那些动辄几十亿晶体管的芯片，究竟是如何从一个想法一步">
+<meta property="og:type" content="article">
+<meta property="og:title" content="芯片设计全流程详解">
+<meta property="og:url" content="http://example.com/2026/01/05/%E8%8A%AF%E7%89%87%E8%AE%BE%E8%AE%A1%E5%85%A8%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="一文讲透芯片设计全流程：从想法到流片的完整旅程（转载+个人补充） 原文链接：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;wujianming-110117&#x2F;p&#x2F;19069268  芯片是怎么“造”出来的？ 在上一篇文章中，我们初步了解了什么是芯片、芯片的分类以及IC设计的基本概念。本文更深入一步，完整拆解一颗数字芯片的设计流程。 你是否好奇，那些动辄几十亿晶体管的芯片，究竟是如何从一个想法一步">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-d1f7c17ba20fb443fa17b9799957d555_1440w.png">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-054bc56df2961d3dd21099dc1e39a252_1440w.png">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-ebaec36876b96118b5d95e12e13e352c_1440w.png">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-ba2183e79fed13132e82cc8989e7f0c0_1440w.png">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-c9d8bac771ed99c24442bb51193d09a9_1440w.png">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-fc66ec98fea9c77fc4cb103ec12f4035_1440w.png">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-ea271408fef99c65c49a3b2064146bcf_1440w.png">
+<meta property="og:image" content="https://example.com/image.png">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-e993dea3a85707ca8d9032e8eb937ebc_1440w.png">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-411d2e542e0ff7036bbfb6d6c2345f3b_1440w.png">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-dd529bff044500029020691eef9329d7_1440w.png">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-0d197fabd1eed6dc08da0a95aef26944_1440w.jpg">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-a17bdbd8a0c840b2c9b003120e2dc866_1440w.png">
+<meta property="og:image" content="https://picx.zhimg.com/80/v2-9b5ad4915527d935bf16bd48cf5d89f2_1440w.png">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-c72632aa280b4c028174b56d91caa9e9_1440w.png">
+<meta property="article:published_time" content="2026-01-05T08:39:57.000Z">
+<meta property="article:modified_time" content="2026-01-05T08:59:06.939Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="芯片设计">
+<meta property="article:tag" content="IC设计">
+<meta property="article:tag" content="数字芯片">
+<meta property="article:tag" content="前端设计">
+<meta property="article:tag" content="后端设计">
+<meta property="article:tag" content="流片">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picx.zhimg.com/80/v2-d1f7c17ba20fb443fa17b9799957d555_1440w.png">
+
+
+<link rel="canonical" href="http://example.com/2026/01/05/%E8%8A%AF%E7%89%87%E8%AE%BE%E8%AE%A1%E5%85%A8%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2026/01/05/%E8%8A%AF%E7%89%87%E8%AE%BE%E8%AE%A1%E5%85%A8%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/","path":"2026/01/05/芯片设计全流程详解/","title":"芯片设计全流程详解"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>芯片设计全流程详解 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Hexo</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E6%96%87%E8%AE%B2%E9%80%8F%E8%8A%AF%E7%89%87%E8%AE%BE%E8%AE%A1%E5%85%A8%E6%B5%81%E7%A8%8B%EF%BC%9A%E4%BB%8E%E6%83%B3%E6%B3%95%E5%88%B0%E6%B5%81%E7%89%87%E7%9A%84%E5%AE%8C%E6%95%B4%E6%97%85%E7%A8%8B%EF%BC%88%E8%BD%AC%E8%BD%BD-%E4%B8%AA%E4%BA%BA%E8%A1%A5%E5%85%85%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">一文讲透芯片设计全流程：从想法到流片的完整旅程（转载+个人补充）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%96%88-%E8%8A%AF%E7%89%87%E8%AE%BE%E8%AE%A1%E7%9A%84%E6%95%B4%E4%BD%93%E6%A1%86%E6%9E%B6"><span class="nav-number">1.1.</span> <span class="nav-text">█ 芯片设计的整体框架</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%96%88-%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%EF%BC%9A%E8%A7%84%E6%A0%BC%E5%AE%9A%E4%B9%89-%E2%80%94%E2%80%94-%E5%85%88%E9%97%AE%E2%80%9C%E5%81%9A%E4%BB%80%E4%B9%88%E2%80%9D%EF%BC%8C%E5%86%8D%E8%B0%88%E2%80%9C%E6%80%8E%E4%B9%88%E5%81%9A%E2%80%9D"><span class="nav-number">1.2.</span> <span class="nav-text">█ 第一阶段：规格定义 —— 先问“做什么”，再谈“怎么做”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%96%88-%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5%EF%BC%9A%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E2%80%94%E2%80%94-%E6%90%AD%E5%BB%BA%E2%80%9C%E9%AA%A8%E6%9E%B6%E2%80%9D%E4%B8%8E%E2%80%9C%E8%93%9D%E5%9B%BE%E2%80%9D"><span class="nav-number">1.3.</span> <span class="nav-text">█ 第二阶段：系统架构设计 —— 搭建“骨架”与“蓝图”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%96%88-%E7%AC%AC%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%9A%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E2%80%94%E2%80%94-%E6%8A%8A%E6%83%B3%E6%B3%95%E5%8F%98%E6%88%90%E2%80%9C%E9%80%BB%E8%BE%91%E8%AF%AD%E8%A8%80%E2%80%9D"><span class="nav-number">1.4.</span> <span class="nav-text">█ 第三阶段：前端设计 —— 把想法变成“逻辑语言”</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-HDL-%E7%BC%96%E7%A0%81%EF%BC%9A%E7%94%A8%E4%BB%A3%E7%A0%81%E6%8F%8F%E8%BF%B0%E7%A1%AC%E4%BB%B6"><span class="nav-number">1.4.1.</span> <span class="nav-text">1. HDL 编码：用代码描述硬件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8A%9F%E8%83%BD%E4%BB%BF%E7%9C%9F%E4%B8%8E%E9%AA%8C%E8%AF%81"><span class="nav-number">1.4.2.</span> <span class="nav-text">2. 功能仿真与验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%99%E4%B8%AA%E9%98%B6%E6%AE%B5%E6%9F%90%E4%BA%9B%E5%A4%A7%E5%9E%8B%E7%9A%84%E8%8A%AF%E7%89%87%E9%AA%8C%E8%AF%81%E4%BC%9A%E5%BC%95%E5%85%A5FPGA%E6%88%96%E8%80%85Emulator%EF%BC%88%E7%A1%AC%E4%BB%B6%E4%BB%BF%E7%9C%9F%E5%99%A8%E6%9D%A5%E5%8A%A0%E9%80%9F%E8%BF%99%E4%B8%AA%E8%BF%87%E7%A8%8B%EF%BC%89%EF%BC%8C%E5%85%B3%E4%BA%8E%E5%AF%B9%E6%AF%94%E4%BD%BF%E7%94%A8VCS-CPU%E7%AE%97%E5%8A%9B%E4%BB%BF%E7%9C%9F%EF%BC%8CFPGA%E9%AA%8C%E8%AF%81%E5%92%8C%E4%B8%93%E7%94%A8%E7%9A%84Emulator%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%8C%E6%88%91%E5%B0%86%E5%8F%A6%E5%8F%91%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E8%AF%B4%E6%98%8E%E4%BB%96%E4%BB%AC%E7%9A%84%E5%85%B3%E8%81%94%E5%92%8C%E5%8C%BA%E5%88%AB%E3%80%82"><span class="nav-number">1.5.</span> <span class="nav-text">这个阶段某些大型的芯片验证会引入FPGA或者Emulator（硬件仿真器来加速这个过程），关于对比使用VCS CPU算力仿真，FPGA验证和专用的Emulator的区别，我将另发一篇文章说明他们的关联和区别。</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E9%80%BB%E8%BE%91%E7%BB%BC%E5%90%88%EF%BC%88Synthesis%EF%BC%89"><span class="nav-number">1.5.1.</span> <span class="nav-text">3. 逻辑综合（Synthesis）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E9%9D%99%E6%80%81%E6%97%B6%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88STA%EF%BC%89"><span class="nav-number">1.5.2.</span> <span class="nav-text">4. 静态时序分析（STA）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%BD%A2%E5%BC%8F%E9%AA%8C%E8%AF%81%EF%BC%88Formal-Verification%EF%BC%89"><span class="nav-number">1.5.3.</span> <span class="nav-text">5. 形式验证（Formal Verification）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E8%A6%86%E7%9B%96%E7%8E%87%E5%88%86%E6%9E%90"><span class="nav-number">1.5.4.</span> <span class="nav-text">6. 覆盖率分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%96%88-%E7%AC%AC%E5%9B%9B%E9%98%B6%E6%AE%B5%EF%BC%9A%E4%B8%AD-%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E2%80%94%E2%80%94-%E8%AE%A9%E9%80%BB%E8%BE%91%E8%90%BD%E5%9C%B0%E4%B8%BA%E2%80%9C%E7%89%A9%E7%90%86%E5%AE%9E%E4%BD%93%E2%80%9D"><span class="nav-number">1.6.</span> <span class="nav-text">█ 第四阶段：中&#x2F;后端设计 —— 让逻辑落地为“物理实体”</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8F%AF%E6%B5%8B%E6%80%A7%E8%AE%BE%E8%AE%A1%EF%BC%88DFT%EF%BC%89"><span class="nav-number">1.6.1.</span> <span class="nav-text">1. 可测性设计（DFT）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%89%A9%E7%90%86%E5%AE%9E%E7%8E%B0%E5%9B%9B%E9%83%A8%E6%9B%B2"><span class="nav-number">1.6.2.</span> <span class="nav-text">2. 物理实现四部曲</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%EF%BC%881%EF%BC%89%E5%B8%83%E5%B1%80%E8%A7%84%E5%88%92%EF%BC%88Floorplanning%EF%BC%89"><span class="nav-number">1.6.2.1.</span> <span class="nav-text">（1）布局规划（Floorplanning）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%EF%BC%882%EF%BC%89%E5%B8%83%E5%B1%80%EF%BC%88Placement%EF%BC%89"><span class="nav-number">1.6.2.2.</span> <span class="nav-text">（2）布局（Placement）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%EF%BC%883%EF%BC%89%E6%97%B6%E9%92%9F%E6%A0%91%E7%BB%BC%E5%90%88%EF%BC%88CTS%EF%BC%89"><span class="nav-number">1.6.2.3.</span> <span class="nav-text">（3）时钟树综合（CTS）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%EF%BC%884%EF%BC%89%E5%B8%83%E7%BA%BF%EF%BC%88Routing%EF%BC%89"><span class="nav-number">1.6.2.4.</span> <span class="nav-text">（4）布线（Routing）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%EF%BC%885%EF%BC%89%E5%AF%84%E7%94%9F%E5%8F%82%E6%95%B0%E6%8F%90%E5%8F%96%E5%92%8C%E4%BF%A1%E5%8F%B7%E5%AE%8C%E6%95%B4%E6%80%A7%E5%88%86%E6%9E%90"><span class="nav-number">1.6.2.5.</span> <span class="nav-text">（5）寄生参数提取和信号完整性分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%EF%BC%886%EF%BC%89%E9%9D%99%E6%80%81%E6%97%B6%E5%BA%8F%E5%88%86%E6%9E%90-%E5%BD%A2%E5%BC%8F%E9%AA%8C%E8%AF%81"><span class="nav-number">1.6.2.6.</span> <span class="nav-text">（6）静态时序分析 &amp; 形式验证</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%90%8E%E4%BB%BF%E7%9C%9F%EF%BC%88Post-layout-Simulation%EF%BC%89"><span class="nav-number">1.6.3.</span> <span class="nav-text">3. 后仿真（Post-layout Simulation）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E7%89%A9%E7%90%86%E9%AA%8C%E8%AF%81"><span class="nav-number">1.6.4.</span> <span class="nav-text">4. 物理验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%8A%9F%E8%80%97%E4%B8%8E%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%88%86%E6%9E%90"><span class="nav-number">1.6.5.</span> <span class="nav-text">5. 功耗与可靠性分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E7%AD%BE%E6%A0%B8%EF%BC%88Sign-off%EF%BC%89"><span class="nav-number">1.6.6.</span> <span class="nav-text">6. 签核（Sign-off）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%96%88-%E6%9C%80%E7%BB%88%E4%B8%80%E6%AD%A5%EF%BC%9A%E6%B5%81%E7%89%87%EF%BC%88Tape-out%EF%BC%89"><span class="nav-number">1.7.</span> <span class="nav-text">█ 最终一步：流片（Tape-out）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%96%88-%E6%80%BB%E7%BB%93%EF%BC%9A%E4%B8%80%E5%BC%A0%E5%9B%BE%E7%9C%8B%E6%87%82%E5%85%A8%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.</span> <span class="nav-text">█ 总结：一张图看懂全流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%96%88-%E5%86%99%E5%9C%A8%E6%9C%80%E5%90%8E"><span class="nav-number">1.9.</span> <span class="nav-text">█ 写在最后</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/01/05/%E8%8A%AF%E7%89%87%E8%AE%BE%E8%AE%A1%E5%85%A8%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="芯片设计全流程详解 | Hexo">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          芯片设计全流程详解
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-01-05 16:39:57 / Modified: 16:59:06" itemprop="dateCreated datePublished" datetime="2026-01-05T16:39:57+08:00">2026-01-05</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="一文讲透芯片设计全流程：从想法到流片的完整旅程（转载-个人补充）"><a href="#一文讲透芯片设计全流程：从想法到流片的完整旅程（转载-个人补充）" class="headerlink" title="一文讲透芯片设计全流程：从想法到流片的完整旅程（转载+个人补充）"></a>一文讲透芯片设计全流程：从想法到流片的完整旅程（转载+个人补充）</h1><blockquote>
+<p>原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/wujianming-110117/p/19069268">https://www.cnblogs.com/wujianming-110117/p/19069268</a></p>
+</blockquote>
+<p>芯片是怎么“造”出来的？</p>
+<p>在上一篇文章中，我们初步了解了什么是芯片、芯片的分类以及IC设计的基本概念。本文更深入一步，完整拆解一颗数字芯片的设计流程。</p>
+<p>你是否好奇，那些动辄几十亿晶体管的芯片，究竟是如何从一个想法一步步变成真实可运行的硅片？这背后是一套高度系统化、环环相扣的工程流程，涉及成百上千名工程师的协作，以及海量EDA工具的支持。</p>
+<p>芯片分为数字芯片、模拟芯片、数模混合芯片等多种类别。不同类别的设计流程也存在一些差异。</p>
+<p>本文将以数字芯片为例，带你走完从“灵光一闪”到“交付制造”的全过程。无论你是初学者，还是对芯片行业感兴趣的非技术背景读者，相信都能从中获得清晰的认知。</p>
+<p><img src="https://picx.zhimg.com/80/v2-d1f7c17ba20fb443fa17b9799957d555_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<hr>
+<h2 id="█-芯片设计的整体框架"><a href="#█-芯片设计的整体框架" class="headerlink" title="█ 芯片设计的整体框架"></a>█ 芯片设计的整体框架</h2><p>现代芯片设计遵循“自顶向下（Top-Down）”的设计哲学：先定义宏观目标，再逐层细化实现路径。</p>
+<p><img src="https://picx.zhimg.com/80/v2-054bc56df2961d3dd21099dc1e39a252_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>整个流程大致可分为四大阶段：</p>
+<ol>
+<li>规格定义（Specification）</li>
+<li>系统架构设计（Architecture Design）</li>
+<li>前端设计（Front-End Design）</li>
+<li>后端设计（Back-End Design）</li>
+</ol>
+<blockquote>
+<p>注：部分资料会将前两个阶段合并为“系统级设计”，或统称为“前端”。但为清晰起见，我们在此将其分开阐述。</p>
+</blockquote>
+<p>这四个阶段并非线性推进，而是反复迭代、持续验证的过程。每一步都必须通过严格的仿真与检查，才能进入下一环节——因为一旦流片失败，代价可能是数千万甚至上亿美元。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-ebaec36876b96118b5d95e12e13e352c_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>参考文章：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247484689&idx=1&sn=f36382a62352cf8dc89237bd72d8ad6c&scene=21#wechat_redirect">数字IC设计 | 入门到放弃指南</a></p>
+<p>下面我们逐层展开。</p>
+<hr>
+<h2 id="█-第一阶段：规格定义-——-先问“做什么”，再谈“怎么做”"><a href="#█-第一阶段：规格定义-——-先问“做什么”，再谈“怎么做”" class="headerlink" title="█ 第一阶段：规格定义 —— 先问“做什么”，再谈“怎么做”"></a>█ 第一阶段：规格定义 —— 先问“做什么”，再谈“怎么做”</h2><p>任何伟大的工程，都始于一个明确的目标。</p>
+<p>芯片设计的第一步，不是写代码，也不是画电路图，而是搞清楚这颗芯片到底要解决什么问题。</p>
+<p>这个过程需要多方协作：产品经理、客户代表、市场团队、应用工程师、研发主管等共同参与。他们要回答一系列关键问题：</p>
+<ul>
+<li>这颗芯片用在哪儿？手机？服务器？汽车？IoT设备？</li>
+<li>主要功能是什么？CPU？GPU？AI加速器？通信基带？</li>
+<li>性能指标是多少？算力（TOPS）、主频（GHz）、延迟（ns）？</li>
+<li>功耗预算多少？峰值功耗？待机功耗？</li>
+<li>成本控制在哪一档？封装形式？是否支持国产工艺？</li>
+<li>是否需要满足特定安全标准？如车规级（AEC-Q100）、工业级？</li>
+</ul>
+<p>所有这些需求最终会被整理成一份正式文档——Spec（Specifications，规格说明书）。</p>
+<p>这份文件就是整个项目的技术宪法，后续所有设计决策都要围绕它展开。如果后期发现 Spec 有误，轻则返工，重则项目终止。</p>
+<blockquote>
+<p>✅ 关键产出：芯片规格说明书（Spec）</p>
+</blockquote>
+<hr>
+<h2 id="█-第二阶段：系统架构设计-——-搭建“骨架”与“蓝图”"><a href="#█-第二阶段：系统架构设计-——-搭建“骨架”与“蓝图”" class="headerlink" title="█ 第二阶段：系统架构设计 —— 搭建“骨架”与“蓝图”"></a>█ 第二阶段：系统架构设计 —— 搭建“骨架”与“蓝图”</h2><p>有了明确目标后，接下来就是由架构师出马，绘制芯片的“作战地图”。</p>
+<p>架构设计的核心任务是：如何用最优方式实现 Spec 中定义的功能和性能目标。</p>
+<p>具体工作包括：</p>
+<ul>
+<li><strong>整体架构选型</strong><br>是采用冯·诺依曼架构？还是哈佛架构？是否引入多核、异构计算（CPU+GPU+NPU）？是否使用片上网络（NoC）？</li>
+<li><strong>模块划分与接口定义</strong><br>将复杂系统拆分为若干功能模块（如 ALU、Cache、DMA、Memory Controller 等），并明确各模块之间的通信协议（AXI、AHB、APB 等）。</li>
+<li><strong>性能建模与资源分配</strong><br>预估数据通路带宽、内存访问频率、缓存命中率等，确保瓶颈不集中在某一处。</li>
+<li><strong>软硬件协同设计</strong><br>哪些功能由硬件实现（速度快、功耗低）？哪些交给软件处理（灵活、易升级）？</li>
+<li><strong>IP 核选型与集成策略</strong><br>是否复用已有的成熟 IP？比如 ARM Cortex 系列 CPU、Imagination GPU、Synopsys USB 控制器等。自研还是外购，直接影响开发周期与成本。</li>
+</ul>
+<p><img src="https://pic1.zhimg.com/80/v2-ba2183e79fed13132e82cc8989e7f0c0_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>这一阶段的设计结果通常以架构框图（Block Diagram）和微架构文档（Micro-Architecture Document）的形式呈现。</p>
+<blockquote>
+<p>✅ 关键产出：系统架构图 + 微架构文档</p>
+</blockquote>
+<hr>
+<h2 id="█-第三阶段：前端设计-——-把想法变成“逻辑语言”"><a href="#█-第三阶段：前端设计-——-把想法变成“逻辑语言”" class="headerlink" title="█ 第三阶段：前端设计 —— 把想法变成“逻辑语言”"></a>█ 第三阶段：前端设计 —— 把想法变成“逻辑语言”</h2><p>参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247484969&idx=1&sn=a646365ad6b68557a2dc4fef28e05fd4&scene=21#wechat_redirect">数字设计之RTL编码指南详解</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247485251&idx=1&sn=df1ac3680ac6aebfe6bf616708cc9eef&scene=21#wechat_redirect">数字IC设计必读书籍和必备网站分享</a></li>
+</ul>
+<p>前端设计，也叫逻辑设计，目标是将抽象的架构方案转化为可执行的数字逻辑。</p>
+<p>它不关心物理实现细节，只关注“功能是否正确”。整个过程像是一场精密的“代码—验证”循环。</p>
+<h3 id="1-HDL-编码：用代码描述硬件"><a href="#1-HDL-编码：用代码描述硬件" class="headerlink" title="1. HDL 编码：用代码描述硬件"></a>1. HDL 编码：用代码描述硬件</h3><p>芯片工程师使用硬件描述语言（HDL），如 Verilog 或 VHDL，在寄存器传输级（RTL）上编写代码，描述每个模块的行为。</p>
+<p>例如，一个 32 位加法器可以用几行 Verilog 代码完成：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> adder_32bit (</span><br><span class="line"><span class="keyword">input</span>  [<span class="number">31</span>:<span class="number">0</span>] a,</span><br><span class="line"><span class="keyword">input</span>  [<span class="number">31</span>:<span class="number">0</span>] b,</span><br><span class="line"><span class="keyword">output</span> [<span class="number">31</span>:<span class="number">0</span>] sum</span><br><span class="line">);</span><br><span class="line"><span class="keyword">assign</span> sum = a + b;</span><br><span class="line"><span class="keyword">endmodule</span></span><br></pre></td></tr></table></figure>
+
+<p>虽然看起来像软件编程，但 HDL 的本质是描述硬件结构，每一行代码最终都会对应到具体的逻辑门和触发器。</p>
+<blockquote>
+<p>⚠️ 提示：HDL 编码需结合晶圆厂提供的标准单元库进行设计，避免写出无法综合的代码。</p>
+</blockquote>
+<hr>
+<h3 id="2-功能仿真与验证"><a href="#2-功能仿真与验证" class="headerlink" title="2. 功能仿真与验证"></a>2. 功能仿真与验证</h3><p>HDL 编码完成之后，就要开始第一波验证（Verification）了。</p>
+<p>前面我说过，芯片设计几乎每一步都要进行验证或仿真，就是为了确保不出错，因为出错的代价实在太大。</p>
+<p>这一步的仿真验证，主要包括电路逻辑功能方面的验证，也就是证明设计的功能是否符合设计规格中的定义，是否存在逻辑实现错误。</p>
+<p>如果发现错误，就需要返回上一步，进行修改，甚至要返回方案设计阶段进行修改。修改之后，再重新进行验证。</p>
+<p>验证方法包括：（借助工具）通过在搭建的验证环境中输入激励（就是加输入信号），然后看检测输出波形是否和预期一样，以此来进行判断。</p>
+<p>常用工具包括：</p>
+<ul>
+<li>VCS&#x2F;xrun（Synopsys）</li>
+<li>QuestaSim（Cadence）</li>
+<li>Verdi&#x2F;simvison&#x2F;indago（用于波形调试）</li>
+</ul>
+<p>这个阶段的仿真称为“前仿真”或“功能仿真”，特点是忽略延迟，只验证逻辑正确性。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-c9d8bac771ed99c24442bb51193d09a9_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<h2 id="这个阶段某些大型的芯片验证会引入FPGA或者Emulator（硬件仿真器来加速这个过程），关于对比使用VCS-CPU算力仿真，FPGA验证和专用的Emulator的区别，我将另发一篇文章说明他们的关联和区别。"><a href="#这个阶段某些大型的芯片验证会引入FPGA或者Emulator（硬件仿真器来加速这个过程），关于对比使用VCS-CPU算力仿真，FPGA验证和专用的Emulator的区别，我将另发一篇文章说明他们的关联和区别。" class="headerlink" title="这个阶段某些大型的芯片验证会引入FPGA或者Emulator（硬件仿真器来加速这个过程），关于对比使用VCS CPU算力仿真，FPGA验证和专用的Emulator的区别，我将另发一篇文章说明他们的关联和区别。"></a>这个阶段某些大型的芯片验证会引入FPGA或者Emulator（硬件仿真器来加速这个过程），关于对比使用VCS CPU算力仿真，FPGA验证和专用的Emulator的区别，我将另发一篇文章说明他们的关联和区别。</h2><h3 id="3-逻辑综合（Synthesis）"><a href="#3-逻辑综合（Synthesis）" class="headerlink" title="3. 逻辑综合（Synthesis）"></a>3. 逻辑综合（Synthesis）</h3><p>当 RTL 代码通过验证后，就要交给 EDA 工具进行逻辑综合。</p>
+<p>参考文章：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247483724&idx=1&sn=455d215357774924800b038fd8e24362&scene=21#wechat_redirect">逻辑综合-Logic Synthesis</a></p>
+<p>综合工具（如 Design Compiler）会做三件事：</p>
+<ol>
+<li><strong>翻译</strong>：将 RTL 代码转为工艺无关的初级的、未优化的通用门级网表。</li>
+<li><strong>优化</strong>：根据面积、时序、功耗等约束进行逻辑重构。逻辑综合需要设定约束条件，也就是希望逻辑综合出来的电路在面积、时序、时延等（PPA）目标参数上达到的标准。优化，是根据约束条件和工艺库（由晶圆厂提供）参数，进行逻辑结构调整，去掉冗余单元，以此满足要求。</li>
+<li><strong>映射</strong>：将通用逻辑映射到目标工艺库中的标准单元（如 NAND2_X1、DFFR）。需要注意的是，不同晶圆厂的工艺库，门电路基本标准单元（standard cell）的面积、时序参数是不一样的。所以，选用的库不一样，综合出来的电路在面积、时序上就不一样。</li>
+</ol>
+<p><img src="https://picx.zhimg.com/80/v2-fc66ec98fea9c77fc4cb103ec12f4035_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>最终输出的是一个门级网表（Netlist），也就是由与非门、或非门、寄存器等基本元件组成的连接关系图。</p>
+<blockquote>
+<p>✅ 关键产出：门级网表（Gate-level Netlist）</p>
+</blockquote>
+<hr>
+<h3 id="4-静态时序分析（STA）"><a href="#4-静态时序分析（STA）" class="headerlink" title="4. 静态时序分析（STA）"></a>4. 静态时序分析（STA）</h3><p>综合完成后，必须检查电路是否能在目标频率下稳定工作。综合后的 STA 还只是 pre-STA，不带延时信息的时序检查，等到后端物理设计完成后还需要带 SDF 的 STA 检查。</p>
+<p>参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247484139&idx=1&sn=319bffeb240ff5055238d882bad52fe2&scene=21#wechat_redirect">STA-静态时序分析基础介绍</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247483776&idx=1&sn=fb11c7c537d910ae64c0d77ca822f75c&scene=21#wechat_redirect">静态时序分析（STA）：芯片时序验证技术</a></li>
+</ul>
+<p>静态时序分析（Static Timing Analysis, STA）就是用来验证这一点的。</p>
+<p>它会分析所有可能的路径，找出是否存在“建立时间”（Setup Time）或“保持时间”（Hold Time）违例。</p>
+<p>关键工具：PrimeTime（Synopsys）</p>
+<p>STA 的核心是识别“关键路径”——即信号传播最慢的那条路径，它决定了芯片的最高运行频率。</p>
+<p>静态时序分析（STA）的作用，主要体现在以下几个方面：</p>
+<p>首先，它能帮助我们确定芯片的最高工作频率。<br>通过详细的时序分析，工程师可以更好地控制工程的各个环节，从而减少延迟，尽可能地提升芯片的工作频率。<br>芯片的最高工作频率由网表（netlist）的关键路径决定。关键路径是网表中信号传播时延的最长路径。</p>
+<p>其次，静态时序分析也是检查时序约束是否满足的重要手段。<br>在时序分析的过程中，我们可以查看目标模块是否满足预设的约束条件。如果不满足，分析结果将帮助我们精确地定位到问题点，并给出详细的改进建议。</p>
+<p>最后，静态时序分析还能用于分析时钟质量。<br>时钟信号存在抖动、偏移和占空比失真等缺陷。通过时序分析，我们可以有效地验证这些缺陷对目标模块性能的影响。</p>
+<p>STA 工具，包括 Synopsys 的 PT（Prime Time）工具等。</p>
+<p>它可以分为三个基本步骤：</p>
+<ol>
+<li>将 netlist 看成一个拓扑图；</li>
+<li>进行时延计算（连线时延 net delay、单元时延 cell delay）；</li>
+<li>找到关键路径，并计算时延，进行判断。</li>
+</ol>
+<p><img src="https://picx.zhimg.com/80/v2-ea271408fef99c65c49a3b2064146bcf_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<hr>
+<h3 id="5-形式验证（Formal-Verification）"><a href="#5-形式验证（Formal-Verification）" class="headerlink" title="5. 形式验证（Formal Verification）"></a>5. 形式验证（Formal Verification）</h3><p>参考文章：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247484586&idx=1&sn=d78f322a0c5929ea437e7f05fc5e4654&scene=21#wechat_redirect">形式验证–Formality原理流程和实践</a></p>
+<p>为了确保综合没有改变原始设计的功能，还需进行形式验证。</p>
+<p>它通过数学方法，自动比对原始 RTL 设计与综合后的网表是否功能等价。</p>
+<p>常见工具：Formality（Synopsys），Conformal LEC（Cadence）</p>
+<hr>
+<h3 id="6-覆盖率分析"><a href="#6-覆盖率分析" class="headerlink" title="6. 覆盖率分析"></a>6. 覆盖率分析</h3><p>验证是否“足够”？需要用覆盖率来衡量。</p>
+<p>主要包括：</p>
+<ul>
+<li>代码覆盖率：所有代码是否都被执行过？</li>
+<li>功能覆盖率：所有预设场景是否都被测试到？</li>
+</ul>
+<p>只有当覆盖率达标（接近 100%），才能认为验证充分。</p>
+<blockquote>
+<p>✅ 前端设计完成标志：综合后的网表 + 通过 STA 与形式验证 + 覆盖率达标</p>
+</blockquote>
+<p>几个主要阶段的输入和输出，如下表所示：</p>
+<p><img src="https://example.com/image.png" alt="前端设计各阶段输入输出表"></p>
+<blockquote>
+<p>前端设计各阶段输入输出表（图片来源：原文附件）</p>
+</blockquote>
+<hr>
+<h2 id="█-第四阶段：中-后端设计-——-让逻辑落地为“物理实体”"><a href="#█-第四阶段：中-后端设计-——-让逻辑落地为“物理实体”" class="headerlink" title="█ 第四阶段：中&#x2F;后端设计 —— 让逻辑落地为“物理实体”"></a>█ 第四阶段：中&#x2F;后端设计 —— 让逻辑落地为“物理实体”</h2><p>如果说前端设计是在“纸上谈兵”，那么后端设计就是在“真枪实弹”地建造芯片。</p>
+<p>它的任务是：把门级网表转化为可以在硅片上制造的物理版图。</p>
+<p>这个过程极其复杂，涉及大量物理效应建模与工艺约束。</p>
+<h3 id="1-可测性设计（DFT）"><a href="#1-可测性设计（DFT）" class="headerlink" title="1. 可测性设计（DFT）"></a>1. 可测性设计（DFT）</h3><p>现代芯片内部有数十亿晶体管，一旦出问题很难定位。因此，在设计阶段就要加入自检机制。</p>
+<p>参考文章：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247484371&idx=1&sn=289c144afd83b8321530a0c3c9fe823f&scene=21#wechat_redirect">DFT（Design for Test）可测试性设计概述：芯片质量的守护引擎</a></p>
+<p>常用技术：</p>
+<ul>
+<li>扫描链（Scan Chain）：把普通寄存器换成可扫描的，便于测试时注入激励和读取响应。</li>
+<li>内建自测试（BIST）：为内存等模块内置测试电路。</li>
+<li>边界扫描（Boundary Scan）：用于检测芯片引脚连接是否正常。</li>
+</ul>
+<p><img src="https://pic1.zhimg.com/80/v2-e993dea3a85707ca8d9032e8eb937ebc_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>DFT 示例图 在测试时，在 Scan-In 阶段加载激励信号，在 Capture 阶段捕获组合逻辑响应，最终通过 Scan-Out 移出比对，就能得出结果。</p>
+<p>可测性设计技术的基础评价指标包括可控性和可观测性。具体情况可以另行搜索网上资料，限于篇幅就不多介绍了。</p>
+<p>DFT 通常在综合前和综合过程中插入，但也有人将其归入后端流程。也有些公司，会将可测性设计归为前端设计或者中端实现的范畴。</p>
+<hr>
+<h3 id="2-物理实现四部曲"><a href="#2-物理实现四部曲" class="headerlink" title="2. 物理实现四部曲"></a>2. 物理实现四部曲</h3><p>物理布局是芯片设计流程中从逻辑视图向物理视图的转换过程。</p>
+<p>它需要考虑到元件的尺寸、形状、相互之间的间距，以及连线的长度和宽度等各种复杂因素。布局的好坏，直接影响到芯片的信号抗干扰能力、寄生电容和电感的大小，决定了芯片的整体性能和可靠性。</p>
+<p>好的物理布局，是要实现空间利用率、总线长度、时序的完美平衡。也就是说，空间利用率要尽量高，总线要尽量短，时序要尽量收敛。</p>
+<p>物理布局的主要步骤包括：布局规划、布局、时钟树综合、布线等。我们逐一来看：</p>
+<h4 id="（1）布局规划（Floorplanning）"><a href="#（1）布局规划（Floorplanning）" class="headerlink" title="（1）布局规划（Floorplanning）"></a>（1）布局规划（Floorplanning）</h4><p>确定芯片核心区域大小、I&#x2F;O 位置、宏模块（如 RAM、PLL）摆放位置。</p>
+<p>要考虑的因素包括：</p>
+<ul>
+<li>模块间通信距离</li>
+<li>热分布均衡</li>
+<li>电源网络规划</li>
+</ul>
+<p>工具会参考 PDK（Process Design Kit）中的工艺规则，确保设计可制造。PDK 包含了工艺相关的各种参数和模型，比如晶体管尺寸、层间距、金属氧化层厚度等，就连线宽、线距等设计规则都与之相关。如果脱离 PDK，你设计的东西，人家根本生产不了，就是白搭。</p>
+<h4 id="（2）布局（Placement）"><a href="#（2）布局（Placement）" class="headerlink" title="（2）布局（Placement）"></a>（2）布局（Placement）</h4><p>将所有标准单元（standard cells）精确放置在芯片区域内。</p>
+<p>目标是平衡：</p>
+<ul>
+<li>面积利用率（通常 70%～90%）</li>
+<li>时序收敛</li>
+<li>布线拥塞</li>
+</ul>
+<h4 id="（3）时钟树综合（CTS）"><a href="#（3）时钟树综合（CTS）" class="headerlink" title="（3）时钟树综合（CTS）"></a>（3）时钟树综合（CTS）</h4><p>时钟树综合（Clock Tree Synthesis，CTS），简单说就是时钟的布线，构建时钟网络。构建时钟网络，使时钟信号尽可能同时到达所有寄存器，减少“时钟偏斜（Clock Skew）”。</p>
+<p>理想情况下，时钟偏差应小于时钟周期的 10%。</p>
+<h4 id="（4）布线（Routing）"><a href="#（4）布线（Routing）" class="headerlink" title="（4）布线（Routing）"></a>（4）布线（Routing）</h4><p>连接所有单元之间的信号线，包括电源、地线和数据线。</p>
+<p>布线需满足：</p>
+<ul>
+<li>工艺设计规则（最小线宽、间距）</li>
+<li>层数限制（现代工艺可达 15 层以上金属）</li>
+<li>信号完整性要求（避免串扰、噪声）</li>
+</ul>
+<p>工具：Innovus（Cadence）、ICC2（Synopsys）</p>
+<p><img src="https://pic1.zhimg.com/80/v2-411d2e542e0ff7036bbfb6d6c2345f3b_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<h4 id="（5）寄生参数提取和信号完整性分析"><a href="#（5）寄生参数提取和信号完整性分析" class="headerlink" title="（5）寄生参数提取和信号完整性分析"></a>（5）寄生参数提取和信号完整性分析</h4><p>物理布局不限完成之后，又要开始进行验证了。</p>
+<p>导线本身的电阻、相邻导线间的互感及耦合电容等因素（寄生参数），会在芯片内部引发信号噪声、串扰和反射等问题，导致信号电压发生波动甚至失真。</p>
+<p>因此，需要进行寄生参数的提取，以及信号完整性的分析验证。</p>
+<h4 id="（6）静态时序分析-形式验证"><a href="#（6）静态时序分析-形式验证" class="headerlink" title="（6）静态时序分析 &amp; 形式验证"></a>（6）静态时序分析 &amp; 形式验证</h4><p>Post-STA：<br>参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247483776&idx=1&sn=fb11c7c537d910ae64c0d77ca822f75c&scene=21#wechat_redirect">静态时序分析（STA）：芯片时序验证技术</a></li>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247484139&idx=1&sn=319bffeb240ff5055238d882bad52fe2&scene=21#wechat_redirect">STA-静态时序分析基础介绍</a></li>
+</ul>
+<p>在电路的每个单元位置和各项参数都已确定的情况下，需要再次进行带延时信息的静态时序分析，以确保最终物理设计结果的准确性。</p>
+<p>Formal Check：<br>和前面一样。再做一次形式验证，确认一下电路功能是否与物理设计之前保持一致。</p>
+<hr>
+<h3 id="3-后仿真（Post-layout-Simulation）"><a href="#3-后仿真（Post-layout-Simulation）" class="headerlink" title="3. 后仿真（Post-layout Simulation）"></a>3. 后仿真（Post-layout Simulation）</h3><p>参考文章：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247484695&idx=1&sn=92370fd475aec3bf11ca82d36f4306cc&scene=21#wechat_redirect">芯片后仿及SDF反标详解</a></p>
+<p>物理布局完成后，要进行带寄生参数的仿真，称为“后仿真”或“时序仿真”。</p>
+<p>此时加入了真实的：</p>
+<ul>
+<li>导线电阻电容（RC parasitics）</li>
+<li>电源噪声</li>
+<li>温度效应</li>
+</ul>
+<p>目的是验证芯片在真实环境下能否正常工作。</p>
+<p><img src="https://picx.zhimg.com/80/v2-dd529bff044500029020691eef9329d7_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<hr>
+<h3 id="4-物理验证"><a href="#4-物理验证" class="headerlink" title="4. 物理验证"></a>4. 物理验证</h3><p>这是流片前的最后一轮“体检”，主要包括：</p>
+<p>物理验证，主要包括 LVS、DRC、ERC 等检查，目的是确保版图的正确性和一致性。</p>
+<ul>
+<li><strong>LVS（Layout vs. Schematic）</strong>：版图对原理图一致性检查，就是版图与逻辑综合后的门级电路图的对比验证。</li>
+<li><strong>DRC（Design Rule Checking）</strong>：版图设计规则检查，检查连线间距，连线宽度等是否满足工艺要求。规则通常都由晶圆厂提供，确保设计在制造过程中不会出现物理上的问题，例如短路、开路、间距不足等。</li>
+<li><strong>ERC（Electrical Rue Checking）</strong>：电气规则检查，检查短路和开路等电气规则违例。</li>
+</ul>
+<p>工具：Calibre（SIMENS EDA）</p>
+<table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DRC（Design Rule Check）</td>
+<td>是否违反制造工艺规则？如线宽太窄、间距不足</td>
+</tr>
+<tr>
+<td>LVS（Layout vs Schematic）</td>
+<td>版图是否与原始电路图一致？防止漏接或多连</td>
+</tr>
+<tr>
+<td>ERC（Electrical Rule Check）</td>
+<td>是否存在电气错误？如悬空引脚、短路</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="5-功耗与可靠性分析"><a href="#5-功耗与可靠性分析" class="headerlink" title="5. 功耗与可靠性分析"></a>5. 功耗与可靠性分析</h3><ul>
+<li><strong>IR Drop 分析</strong>：检查电源电压是否因电阻压降而不足。</li>
+<li><strong>EM（电迁移）分析</strong>：长期大电流是否会烧毁金属线？</li>
+<li><strong>热分析</strong>：局部热点是否会导致性能下降或损坏？</li>
+</ul>
+<p>工具：RedHawk（Ansys）、Voltus（Cadence）</p>
+<hr>
+<h3 id="6-签核（Sign-off）"><a href="#6-签核（Sign-off）" class="headerlink" title="6. 签核（Sign-off）"></a>6. 签核（Sign-off）</h3><p>注意！布局布线完成后的这几个步骤，包括物理验证、静态时序分析、功耗和可靠性分析等，都属于签核（Sign-off）检查。</p>
+<p>签核是流片前的最后一道“守门关”。</p>
+<p>如果不满足，就要回到物理设计做修改。如果还是不满足，就需要返到电路设计和验证环节。</p>
+<p>如果全都满足，那这个版图就可以送去晶圆厂流片。</p>
+<p>签核意味着设计团队正式确认：“这个设计可以送去制造了。”</p>
+<p>一旦签核，任何修改都需要走工程变更单（ECO）流程，避免推倒重来。</p>
+<p>芯片设计有时候还会进行工程变更（Engineering Change Order，ECO）。</p>
+<p>也就是局部修改单元位置或布线或者修改少量逻辑（网表级的），解决 STA 或后仿真发现的违例问题。通过工程变更，可以避免重新设计和需要重新走完以上所有流程。</p>
+<p><img src="https://picx.zhimg.com/80/v2-0d197fabd1eed6dc08da0a95aef26944_1440w.jpg" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>签核也要采用 EDA 工具，包括了 IR 分析签核工具、时序分析签核工具、物理验证签核工具等。</p>
+<p>对于目前越来越复杂的工艺，实现签核收敛（即所有检查均通过）变得越来越困难。这主要是因为多种物理效应（如工艺偏差 OCV、信号完整性 SI、电源完整性 PI、热效应等）之间存在复杂的相互作用。</p>
+<p>以上，就是后端设计的主要流程。在实际项目中，其实还包括了附加流程，例如填充单元插入，以及随着制造工艺不断演进产生的 DFM（可制造性设计）等。大家有兴趣可以另外研究。</p>
+<p>后端设计几个主要阶段的输入和输出，如下表所示：</p>
+<p><img src="https://picx.zhimg.com/80/v2-a17bdbd8a0c840b2c9b003120e2dc866_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>后端设计全部完成之后，就可以输出最终的 GDSⅡ 文件了。文件包含以下信息：</p>
+<ul>
+<li>层次结构和顶层结构：芯片的不同层和顶层结构，包括金属层、多晶硅层、掩膜层、胶片层等。</li>
+<li>几何信息：包括芯片各个部位的尺寸、形状、位置以及与其他部位的连接方式等。</li>
+<li>特殊功能区域：如联排、防抖动区域、纹理区、DPJ (Diffusion Pocket Junction) 等。</li>
+<li>材料属性信息：描述每个层的材料类型、介电常数、厚度等。</li>
+</ul>
+<blockquote>
+<p>✅ 关键产出：GDSII 文件（最终版图数据）</p>
+</blockquote>
+<hr>
+<h2 id="█-最终一步：流片（Tape-out）"><a href="#█-最终一步：流片（Tape-out）" class="headerlink" title="█ 最终一步：流片（Tape-out）"></a>█ 最终一步：流片（Tape-out）</h2><p>“流片”是芯片设计的里程碑事件。</p>
+<p>参考文章：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk3NTkwMjEyOQ==&mid=2247484648&idx=1&sn=6f5d240ca9ef090e595524b0c9d6342d&scene=21#wechat_redirect">芯片“流片”详解：上亿晶体管的生死跃迁–从设计到量产的终极博弈</a></p>
+<p>所谓 Tape-out，原意是把设计数据写到磁带上送厂（现已数字化），意为“冻结设计，准备制造”。</p>
+<p><img src="https://picx.zhimg.com/80/v2-9b5ad4915527d935bf16bd48cf5d89f2_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>流程如下：</p>
+<ol>
+<li>将 GDSII 文件交付晶圆厂（如台积电、中芯国际）。</li>
+<li>晶圆厂根据版图制作光刻掩模版（Photomask）。</li>
+<li>使用掩模版进行多次光刻、刻蚀、沉积等工艺，制造出晶圆。</li>
+<li>经过封装测试，得到成品芯片。</li>
+</ol>
+<p>首批制造的芯片称为“工程样品”，需进行全面测试：</p>
+<ul>
+<li>功能是否正常？</li>
+<li>频率能否达标？</li>
+<li>功耗是否超标？</li>
+</ul>
+<p>如果一切顺利，恭喜！项目成功。若有问题，则需分析原因，可能返工甚至放弃。</p>
+<p>流片结束后，芯片进入测试调试阶段，需进行功能、性能及可靠性验证。若发现问题，则需启动 post-mask ECO（Engineering Change Order，工程改变命令）。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-c72632aa280b4c028174b56d91caa9e9_1440w.png" alt="image"></p>
+<blockquote>
+<p>添加图片注释，不超过 140 字（可选）</p>
+</blockquote>
+<p>ECO 可在流片前、中、后多个阶段发生。若在流片后检查出缺陷，视问题严重程度，可能只需修改少数金属层（Metal Layer），也可能要变动十几层，甚至完全重新流片。ECO 是在原设计基础上做局部修正，以避免全部推倒重来，节省时间与经济成本。</p>
+<p>尽管 ECO 提供补救机会，但反复修改仍会显著拉长开发周期、增加不确定性，因此企业必须在设计验证环节力求精准，最大限度降低流片后修改的需求。</p>
+<hr>
+<h2 id="█-总结：一张图看懂全流程"><a href="#█-总结：一张图看懂全流程" class="headerlink" title="█ 总结：一张图看懂全流程"></a>█ 总结：一张图看懂全流程</h2><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>主要任务</th>
+<th>核心输出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>规格定义</td>
+<td>明确需求</td>
+<td>芯片规格书（Spec）</td>
+</tr>
+<tr>
+<td>架构设计</td>
+<td>模块划分、接口定义</td>
+<td>架构图、微架构文档</td>
+</tr>
+<tr>
+<td>前端设计</td>
+<td>RTL 编码、综合、验证</td>
+<td>门级网表</td>
+</tr>
+<tr>
+<td>后端设计</td>
+<td>布局布线、物理验证</td>
+<td>GDSII 版图</td>
+</tr>
+<tr>
+<td>流片</td>
+<td>制造样品</td>
+<td>工程样片</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="█-写在最后"><a href="#█-写在最后" class="headerlink" title="█ 写在最后"></a>█ 写在最后</h2><p>芯片设计是一项集科学、工程与艺术于一体的复杂系统工程。它不仅考验技术深度，更依赖团队协作、流程管理和工具链支持。</p>
+<p>从一行 Verilog 代码，到一块指甲盖大小却蕴含百亿晶体管的芯片，背后是无数工程师的心血与智慧。</p>
+<p>正如有人所说：“软件改变了世界，而硬件承载了这一切。”</p>
+<p>希望这篇文章，能让你对“芯片是如何设计出来的”有一个完整、清晰的认知。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%8A%AF%E7%89%87%E8%AE%BE%E8%AE%A1/" rel="tag"># 芯片设计</a>
+              <a href="/tags/IC%E8%AE%BE%E8%AE%A1/" rel="tag"># IC设计</a>
+              <a href="/tags/%E6%95%B0%E5%AD%97%E8%8A%AF%E7%89%87/" rel="tag"># 数字芯片</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag"># 前端设计</a>
+              <a href="/tags/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag"># 后端设计</a>
+              <a href="/tags/%E6%B5%81%E7%89%87/" rel="tag"># 流片</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/01/05/hello-world/" rel="prev" title="Hello World">
+                  <i class="fa fa-angle-left"></i> Hello World
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">John Doe</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
